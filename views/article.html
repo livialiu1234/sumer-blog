@@ -1,0 +1,114 @@
+<% var title = article.a_title %>
+<%- include  header.html %>
+<div>
+    <% if (user && user == article.u_name) { %>
+        <div align = "right">
+            <a href = "/edit/<%= article.a_id %>" style = "margin:10px">编辑</a>
+            <a href = "/delete/article/<%= article.a_id %>" style = "margin:10px">删除</a>
+        </div>
+    <% } %>
+
+    <div>
+        <h3 align="center" style = "margin-top:1cm"><%= article.a_title %></h3>
+    </div>
+    <div style="margin-top:1cm" class = "">
+        <article class = "">
+            <%- article.a_content %>
+        </article>
+    </div>
+
+
+    <div align = "right" style = "height:50px;margin-top:30px">
+        <span> 阅读（</span><%= article.a_read %><span>）</span>
+        <a id= "favour" href = "">赞</a>（ <span id ="favour_amount"><%= article.a_favour %></span> ）
+    </div>
+
+    <hr/>
+
+    <form class = "form" >
+        <textarea id = "comment" name = "comment" rows = 6 style = "width:100%;" maxlength = "512" placeholder = "发表评论" oninput = "checkUser()"></textarea>
+        <button class = "btn" id = "post" type = "button" value = "提交">提交 </button>
+    </form>
+
+    <hr/>
+
+    <script type = "text/javascript">
+        var url = "/favour/"+ <%=  article.a_id %> + "?favour_amount="+<%= article.a_favour %>;
+        $(document).ready(function () {
+            $("#favour").click(function () {
+                if (!checkUser()) {
+                    return false;
+                }
+                $("#favour_amount").load(url);
+                return false;
+            });
+        });
+
+        function validate () {
+            var comment = document.getElementById('comment').value;
+            if (!checkUser()) {
+                return false;
+            }
+            if (!comment || !comment.length) {
+                alert("coment cant be null");
+                return false;
+            }
+            return true;
+        }
+        function checkUser () {
+            var user_start = document.cookie.indexOf('user=');
+            if (user_start == -1) {
+                alert("请先登录");
+                return false;
+            }
+            return true;
+        }
+
+
+        $(document).ready(function () {
+            var url = "/post/comment/<%= article.a_id %>";
+            $("#post").click(function () {
+                if (!checkUser()) {
+                    return false;
+                }else if(!validate()){
+                    return false;
+                }else{
+                    postComment();
+                }
+            });
+            function postComment() {
+                $.post(url, {comment:$("#comment").val()}, function (data, status) {
+                    console.log(data +status);
+                    if (status != 'success') {
+                        alert("comment faild");
+                        return false;
+                    }else {
+                        $("#comments").prepend('<div> <p class = ""><a herf = "#"> <%= user %></a> </p> <article class = "" style = "text-indent:2em">'+ $("#comment").val() + '</article> </div> <div align = "right" <span>刚刚</span> <span style = "margin-left:20px"><a>回复</a></span></div><hr/>');
+                        $("#comment").val("");
+                        return true;
+                    }
+                })
+            }
+        })
+
+
+    </script>
+
+
+    <% if (comments) { %>
+        <div id = "comments" name = "comments">
+            <%  for (var key in comments) { %>
+                <div>
+                    <p class = ""><a herf = "#"> <%= comments[key].u_name %></a> </p>
+                    <article class = "" style = "text-indent:2em"><%= comments[key].c_content %> </article>
+                </div>
+                <div align = "right">
+                    <span>2015-04-21</span>
+                    <span style = "margin-left:20px"><a>回复</a></span>
+                </div>
+                <hr/>
+            <% } %>
+        </div>
+    <% } %>
+</div>
+<% include footer.html %>
